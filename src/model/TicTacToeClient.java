@@ -9,7 +9,7 @@ import java.awt.event.MouseEvent;
 
 public class TicTacToeClient extends Client implements DrawableObject {
 
-    private int playerNumber;
+    private int playerNumber,timer;
     private boolean click,turn;
     private Field[] map;
 
@@ -30,11 +30,13 @@ public class TicTacToeClient extends Client implements DrawableObject {
                 drawTool.drawRectangle(i*200+100,j*200+80, 200,200);
             }
         }
+        drawTool.drawText(25,25,"Timer: "+timer);
     }
 
     @Override
     public void update(double dt) {
-
+        if (timer > 0) timer -= dt;
+        if (timer >= 1 && timer <= 2) System.exit(0);
     }
 
     @Override
@@ -88,6 +90,9 @@ public class TicTacToeClient extends Client implements DrawableObject {
                 }
                 updateField(data);
             }
+        }else if(pMessage.contains("WIN")){
+            turn = false;
+            timer = 50;
         }
     }
 
@@ -100,7 +105,6 @@ public class TicTacToeClient extends Client implements DrawableObject {
                     for (int j = 0; j < 3; j++) {
                         if (e.getX() >= i * 200 + 100 && e.getX() < i * 200 + 300 && e.getY() >= j * 200 + 80 && e.getY() < j * 200 + 280) {
                             String message = "ACTIONNEXT" + i + "FIELD" + j + "FIELD" + playerNumber + "";
-                            System.out.println(message);
                             send(message);
                         }
                     }
