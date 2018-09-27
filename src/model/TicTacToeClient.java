@@ -1,18 +1,40 @@
 package model;
 
 import model.abitur.netz.Client;
-import model.framework.GraphicalObject;
 import view.framework.DrawTool;
 import view.framework.DrawableObject;
 
 import java.awt.event.MouseEvent;
 
+/**
+ * Klasse des Clients zum TicTacToe spielen.
+ */
 public class TicTacToeClient extends Client implements DrawableObject {
 
-    private int playerNumber,timer;
-    private boolean click,turn;
+    /** Spieler-Nummer (Kreis(1) oder Kreuz(2)) */
+    private int playerNumber;
+
+    /**
+     * click: Mousereleased boolean
+     * turn: Ob man am Zug ist
+     * win: Ob das Spiel zu Ende ist
+     * restart: Ob man ein Rematch haben will
+     */
+    private boolean click,turn,win,restart;
+
+    /**
+     * Das Spielfeld, das in einem 1-Dimensionalem Array gespeichert wird auf Grund von höherer Nützlichkeit.
+     */
     private Field[] map;
 
+    /**
+     * Konstrukor der Klasse TicTacToeClient
+     * Erstellt einen Client womit auf den Servern TicTacToe spielen kann
+     *
+     * @param pServerIP IPv4 Adresse des Servers um sich zu verbinden
+     * @param pServerPort +der benötigte Port
+     * @param map Eine Map die übergeben werden muss (Array aus Field-Objekten)
+     */
     public TicTacToeClient(String pServerIP, int pServerPort, Field[] map) {
         super(pServerIP, pServerPort);
         if(isConnected())
@@ -20,9 +42,12 @@ public class TicTacToeClient extends Client implements DrawableObject {
         this.map = map;
     }
 
-
-
-    //Irrelevant
+    /**
+     * Felder werden gezeichnet
+     * Rematch-Button wird nach Bedarf gezeichnet
+     *
+     * @param drawTool DrawTool lol
+     */
     @Override
     public void draw(DrawTool drawTool) {
         for (int i = 0; i < 3; i++) {
@@ -30,13 +55,21 @@ public class TicTacToeClient extends Client implements DrawableObject {
                 drawTool.drawRectangle(i*200+100,j*200+80, 200,200);
             }
         }
-        drawTool.drawText(25,25,"Timer: "+timer);
+        if (win) {
+            if (restart) drawTool.setCurrentColor(0,255,0,255);
+            else drawTool.setCurrentColor(0,0,0,255);
+            drawTool.drawRectangle(350,30,100,30);
+            drawTool.drawRectangle(351,31,98,28);
+            drawTool.drawRectangle(352,32,96,26);
+            drawTool.drawText(370,50,"Rematch?");
+        }
     }
 
+
+    //Irrelevant
     @Override
     public void update(double dt) {
-        if (timer > 0) timer -= dt;
-        if (timer >= 1 && timer <= 2) System.exit(0);
+
     }
 
     @Override
@@ -51,13 +84,21 @@ public class TicTacToeClient extends Client implements DrawableObject {
     //Irrelevant
 
 
-
+    /**
+     * Aktionen des Clients auf Nachrichten des Servers
+     *
+     * @param pMessage Die Nachricht
+     */
     @Override
     public void processMessage(String pMessage) {
         if(pMessage.contains("TEXT")){
             String[] message = pMessage.split("TEXT");
             for(int i=1;i<message.length;i++){
                 System.out.println(message[i]);
+            }
+            if (message[1].equalsIgnoreCase("   ")) {
+                win = false;
+                restart = false;
             }
         }else if (pMessage.contains("SPIELER")){
             String[] message = pMessage.split("SPIELER");
@@ -90,12 +131,20 @@ public class TicTacToeClient extends Client implements DrawableObject {
                 }
                 updateField(data);
             }
-        }else if(pMessage.contains("WIN")){
+        }else if (pMessage.contains("WIN")){
             turn = false;
-            timer = 50;
+            win = true;
+        }else if (pMessage.contains("RESTART")){
+            win = false;
+            restart = false;
         }
     }
 
+    /**
+     * Mausklick-Überprüfung
+     *
+     * @param e
+     */
     @Override
     public void mouseReleased(MouseEvent e) {
         if (!click) {
@@ -109,17 +158,31 @@ public class TicTacToeClient extends Client implements DrawableObject {
                         }
                     }
                 }
+            }else if (win) {
+                if (e.getX() >= 350 && e.getX() <= 450 && e.getY() >= 30 && e.getY() <= 60) {
+                    if (!restart) {
+                        send("RESTART");
+                        restart = true;
+                    }
+                }
             }
         }else{
             click = false;
         }
     }
 
+    /**
+     * Aktualisieren des Feldes:
+     * Das üebrgebene "map"-Array bekommt die entsprechenden Werte zugeschrieben die es momentan aufweisen soll.
+     *
+     * @param data
+     */
     private void updateField(String[][] data){
         for (int i = 0; i < data.length; i++) {
             int wert = Integer.parseInt(data[i][2]);
             if (wert == 1) map[i].setCircle();
             if (wert == 2) map[i].setCross();
+            if (wert == 0) map[i].setEmpty();
         }
     }
 }
