@@ -110,7 +110,6 @@ public class TicTacToeClient extends Client implements DrawableObject {
             if (playerNumber == 2) {
                 turn = true;
             }
-            System.out.println(playerNumber+" "+turn);
         }else if (pMessage.contains("KREIS")){
             if (playerNumber == 1) {
                 turn = true;
@@ -118,7 +117,6 @@ public class TicTacToeClient extends Client implements DrawableObject {
             if (playerNumber == 2) {
                 turn = false;
             }
-            System.out.println(playerNumber+" "+turn);
         }else if (pMessage.contains("UPDATE")){
             String[] toUpdate =  pMessage.split("UPDATE");
             if (toUpdate[1].contains("NEXT")){
