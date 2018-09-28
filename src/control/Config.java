@@ -7,7 +7,7 @@ package control;
 public class Config {
 
     // Titel des Programms (steht oben in der Fenstertitelzeile)
-    public final static String WINDOW_TITLE = "Unbenanntes Projekt";
+    public final static String WINDOW_TITLE = "Tic Tac Toe";
 
     // Breite des Programmfensters (Width) und Höhe des Programmfensters (Height)
     public final static int WINDOW_WIDTH = 800;
