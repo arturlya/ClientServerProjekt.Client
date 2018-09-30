@@ -23,7 +23,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
     private boolean click,turn,win,restart;
 
     /**
-     * Das Spielfeld, das in einem 1-Dimensionalem Array gespeichert wird auf Grund von höherer Nützlichkeit.
+     * Das Spielfeld, das auf Grund von höherer Nützlichkeit in einem 1-Dimensionalem Array gespeichert wird.
      */
     private Field[] map;
 
@@ -101,9 +101,18 @@ public class TicTacToeClient extends Client implements DrawableObject {
                 restart = false;
             }
         }else if (pMessage.contains("SPIELER")){
+            /**
+             * Es wird festgelegt ob der Client Spieler 1 oder Spieler 2 ist
+             */
             String[] message = pMessage.split("SPIELER");
             playerNumber = Integer.parseInt(message[1]);
         }else if (pMessage.contains("KREUZ")){
+            /**
+             * Es wird festgelegt wer als Erster startet
+             * Man fängt an, wenn man:
+             *      - Spieler 1 ist und das Symbol Kreuz hat
+             *      - Spieler 2 ist und das Symbol Kreis hat
+             */
             if (playerNumber == 1) {
                 turn = false;
             }
@@ -118,6 +127,9 @@ public class TicTacToeClient extends Client implements DrawableObject {
                 turn = false;
             }
         }else if (pMessage.contains("UPDATE")){
+            /**
+             * Das Spielfeld wid aktualisiert
+             */
             String[] toUpdate =  pMessage.split("UPDATE");
             if (toUpdate[1].contains("NEXT")){
                 String[] fields = toUpdate[1].split("NEXT");
