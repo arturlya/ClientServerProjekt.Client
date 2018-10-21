@@ -4,7 +4,14 @@ import model.abitur.netz.Client;
 import view.framework.DrawTool;
 import view.framework.DrawableObject;
 
+import javax.crypto.Cipher;
 import java.awt.event.MouseEvent;
+import java.math.BigInteger;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 
 /**
  * Klasse des Clients zum TicTacToe spielen.
@@ -26,6 +33,8 @@ public class TicTacToeClient extends Client implements DrawableObject {
      * Das Spielfeld, das auf Grund von höherer Nützlichkeit in einem 1-Dimensionalem Array gespeichert wird.
      */
     private Field[] map;
+    private PublicKey publicKey;
+    private PrivateKey privateKey;
 
     /**
      * Konstrukor der Klasse TicTacToeClient
@@ -40,7 +49,44 @@ public class TicTacToeClient extends Client implements DrawableObject {
         if(isConnected())
             System.out.println("running Client");
         this.map = map;
+
     }
+
+
+    private byte[] encryptMessage(String message) throws Exception{
+        byte[] encryptedMessage = null;
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
+        cipher.init(Cipher.ENCRYPT_MODE,publicKey);
+        encryptedMessage = cipher.doFinal(message.getBytes());
+
+        return encryptedMessage;
+    }
+
+
+    private void buildPrivateKey(String message){
+        String[] temp = message.split("PRIVATE");
+        temp = temp[1].split("NEXT");
+        try {
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            PrivateKey prK = factory.generatePrivate(new RSAPrivateKeySpec(new BigInteger(temp[0].getBytes()),new BigInteger(temp[1].getBytes())));
+            privateKey = prK;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void buildPublicKey(String message){
+        String[] temp = message.split("PUBLIC");
+        temp = temp[1].split("NEXT");
+        try {
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            PublicKey puK = factory.generatePublic(new RSAPublicKeySpec(new BigInteger(temp[0].getBytes()),new BigInteger(temp[1].getBytes())));
+            publicKey = puK;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * Felder werden gezeichnet
@@ -91,7 +137,11 @@ public class TicTacToeClient extends Client implements DrawableObject {
      */
     @Override
     public void processMessage(String pMessage) {
-        if(pMessage.contains("TEXT")){
+        if(pMessage.contains("PUBLIC")) {
+            buildPublicKey(pMessage);
+        }else if(pMessage.contains("PRIVATE")) {
+            buildPrivateKey(pMessage);
+        } else if(pMessage.contains("TEXT")){
             String[] message = pMessage.split("TEXT");
             for(int i=1;i<message.length;i++){
                 System.out.println(message[i]);
@@ -119,6 +169,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
             if (playerNumber == 2) {
                 turn = true;
             }
+            System.out.println(playerNumber+" "+turn);
         }else if (pMessage.contains("KREIS")){
             if (playerNumber == 1) {
                 turn = true;
@@ -126,6 +177,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
             if (playerNumber == 2) {
                 turn = false;
             }
+            System.out.println(playerNumber+" "+turn);
         }else if (pMessage.contains("UPDATE")){
             /**
              * Das Spielfeld wid aktualisiert
@@ -147,6 +199,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
         }else if (pMessage.contains("RESTART")){
             win = false;
             restart = false;
+
         }
     }
 
@@ -164,6 +217,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
                     for (int j = 0; j < 3; j++) {
                         if (e.getX() >= i * 200 + 100 && e.getX() < i * 200 + 300 && e.getY() >= j * 200 + 80 && e.getY() < j * 200 + 280) {
                             String message = "ACTIONNEXT" + i + "FIELD" + j + "FIELD" + playerNumber + "";
+                            System.out.println(message);
                             send(message);
                         }
                     }
@@ -192,7 +246,6 @@ public class TicTacToeClient extends Client implements DrawableObject {
             int wert = Integer.parseInt(data[i][2]);
             if (wert == 1) map[i].setCircle();
             if (wert == 2) map[i].setCross();
-            if (wert == 0) map[i].setEmpty();
         }
     }
 }
