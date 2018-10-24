@@ -2,6 +2,7 @@ package control;
 
 import control.framework.UIController;
 import model.*;
+import view.framework.DrawFrame;
 
 /**
  * Ein Objekt der Klasse ProgramController dient dazu das Programm zu steuern. Die updateProgram - Methode wird
@@ -12,6 +13,7 @@ public class ProgramController {
     // Attribute
 
     // Referenzen
+    private DrawFrame drawFrame;
     private UIController uiController;  // diese Referenz soll auf ein Objekt der Klasse uiController zeigen. Über dieses Objekt wird das Fenster gesteuert.
 
     /**
@@ -21,8 +23,9 @@ public class ProgramController {
      * der Klasse UIController. Diese wird als Parameter übergeben.
      * @param uiController das UIController-Objekt des Programms
      */
-    public ProgramController(UIController uiController){
+    public ProgramController(UIController uiController,DrawFrame drawFrame){
         this.uiController = uiController;
+        this.drawFrame = drawFrame;
     }
 
     /**
@@ -36,7 +39,7 @@ public class ProgramController {
             map[i].setY(i%3);
             uiController.drawObject(map[i]);
         }
-        TicTacToeClient client = new TicTacToeClient("localhost", 2796, map);
+        TicTacToeClient client = new TicTacToeClient("localhost", 2796, map,drawFrame.getActiveDrawingPanel());
         uiController.drawObject(client);
     }
 

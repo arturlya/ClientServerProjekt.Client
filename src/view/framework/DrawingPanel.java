@@ -24,6 +24,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener {
     private ArrayList<Integer> currentlyPressedKeys;
     private DrawTool drawTool;
 
+
+
+
     /**
      * Konstruktor
      */
@@ -34,7 +37,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener {
         drawableObjects = new ArrayList<>();
         currentlyPressedKeys = new ArrayList<Integer>();
         drawTool = new DrawTool();
+
     }
+
 
     /**
      * Sorgt dafür, dass alle Objekte gezeichnet und

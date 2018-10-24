@@ -37,7 +37,7 @@ public class UIController implements ActionListener {
         dt = 35; //Vernuenftiger Startwert
         if ( Config.INFO_MESSAGES) System.out.println("  > UIController: Erzeuge ProgramController und starte Spielprozess (Min. dt = "+dt+"ms)...");
         if ( Config.INFO_MESSAGES) System.out.println("-------------------------------------------------------------------------------------------------\n");
-        gameController = new ProgramController(this);
+        gameController = new ProgramController(this,drawFrame);
         gameController.startProgram();
         // Starte nebenlaeufigen Prozess, der Zeichnen und Animation uebernimmt
         lastLoop = System.nanoTime();

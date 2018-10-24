@@ -3,15 +3,22 @@ package model;
 import model.abitur.netz.Client;
 import view.framework.DrawTool;
 import view.framework.DrawableObject;
+import view.framework.DrawingPanel;
 
 import javax.crypto.Cipher;
-import java.awt.event.MouseEvent;
+import javax.swing.*;
+import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Scanner;
 
 /**
  * Klasse des Clients zum TicTacToe spielen.
@@ -35,6 +42,10 @@ public class TicTacToeClient extends Client implements DrawableObject {
     private Field[] map;
     private PublicKey publicKey;
     private PrivateKey privateKey;
+    private Scanner scanner;
+
+    private DrawingPanel dp;
+    private JTextField textField;
 
     /**
      * Konstrukor der Klasse TicTacToeClient
@@ -44,18 +55,33 @@ public class TicTacToeClient extends Client implements DrawableObject {
      * @param pServerPort +der benötigte Port
      * @param map Eine Map die übergeben werden muss (Array aus Field-Objekten)
      */
-    public TicTacToeClient(String pServerIP, int pServerPort, Field[] map) {
+    public TicTacToeClient(String pServerIP, int pServerPort, Field[] map, DrawingPanel dp) {
         super(pServerIP, pServerPort);
         if(isConnected())
             System.out.println("running Client");
         this.map = map;
+        this.dp = dp;
 
+        scanner = new Scanner(System.in);
+        textField = new JTextField(5);
+        dp.add(textField);
+        textField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    System.out.println("> "+e.getActionCommand());
+                    send("CHAT"+encryptMessage(e.getActionCommand()));
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
     }
 
 
     private byte[] encryptMessage(String message) throws Exception{
         byte[] encryptedMessage = null;
-        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
+        Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE,publicKey);
         encryptedMessage = cipher.doFinal(message.getBytes());
 
@@ -116,6 +142,11 @@ public class TicTacToeClient extends Client implements DrawableObject {
     @Override
     public void update(double dt) {
 
+    //    System.out.println((dp.getTextField().getText()));
+        //if(scanner.hasNext()) {
+     //       send(scanner.next());
+        //     System.out.println("sended "+scanner.next());
+
     }
 
     @Override
@@ -125,6 +156,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
 
     @Override
     public void keyReleased(int key) {
+
 
     }
     //Irrelevant
