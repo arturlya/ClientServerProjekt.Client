@@ -1,6 +1,7 @@
 package model;
 
 import model.abitur.netz.Client;
+import sun.security.rsa.RSAKeyPairGenerator;
 import view.framework.DrawTool;
 import view.framework.DrawableObject;
 import view.framework.DrawingPanel;
@@ -8,16 +9,19 @@ import view.framework.DrawingPanel;
 import javax.crypto.Cipher;
 import javax.swing.*;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.math.BigInteger;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.*;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -40,12 +44,14 @@ public class TicTacToeClient extends Client implements DrawableObject {
      * Das Spielfeld, das auf Grund von höherer Nützlichkeit in einem 1-Dimensionalem Array gespeichert wird.
      */
     private Field[] map;
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
     private Scanner scanner;
 
     private DrawingPanel dp;
     private JTextField textField;
+
+    private int N,e,d;
+
+
 
     /**
      * Konstrukor der Klasse TicTacToeClient
@@ -61,7 +67,6 @@ public class TicTacToeClient extends Client implements DrawableObject {
             System.out.println("running Client");
         this.map = map;
         this.dp = dp;
-
         scanner = new Scanner(System.in);
         textField = new JTextField(5);
         dp.add(textField);
@@ -70,48 +75,45 @@ public class TicTacToeClient extends Client implements DrawableObject {
             public void actionPerformed(ActionEvent e) {
                 try {
                     System.out.println("> "+e.getActionCommand());
-                    send("CHAT"+encryptMessage(e.getActionCommand()));
+                    //send("CHAT"+new String(encryptMessage(e.getActionCommand())));
+
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
             }
         });
+
     }
 
-
-    private byte[] encryptMessage(String message) throws Exception{
-        byte[] encryptedMessage = null;
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE,publicKey);
-        encryptedMessage = cipher.doFinal(message.getBytes());
-
-        return encryptedMessage;
-    }
-
-
-    private void buildPrivateKey(String message){
-        String[] temp = message.split("PRIVATE");
-        temp = temp[1].split("NEXT");
-        try {
-            KeyFactory factory = KeyFactory.getInstance("RSA");
-            PrivateKey prK = factory.generatePrivate(new RSAPrivateKeySpec(new BigInteger(temp[0].getBytes()),new BigInteger(temp[1].getBytes())));
-            privateKey = prK;
-        } catch (Exception e) {
-            e.printStackTrace();
+    public int[] encryptMessage(String message, int e, int N){
+        byte[] asciiMessage = message.getBytes(StandardCharsets.US_ASCII);
+        int[] temp = new int[asciiMessage.length];
+        for(int i=0;i<asciiMessage.length;i++){
+            System.out.println("Ascii : "+asciiMessage[i]);
+            temp[i] = asciiMessage[i];
         }
+        for(int i=0;i<temp.length;i++){
+            temp[i] = (int)(Math.pow(temp[i],e)%N);
+            System.out.println("Neu : "+temp[i]);
+        }
+        return temp;
     }
 
-    private void buildPublicKey(String message){
-        String[] temp = message.split("PUBLIC");
-        temp = temp[1].split("NEXT");
-        try {
-            KeyFactory factory = KeyFactory.getInstance("RSA");
-            PublicKey puK = factory.generatePublic(new RSAPublicKeySpec(new BigInteger(temp[0].getBytes()),new BigInteger(temp[1].getBytes())));
-            publicKey = puK;
-        } catch (Exception e) {
-            e.printStackTrace();
+    public String decryptMessage(int[] encrypted,int e, int d, int N){
+        String temp ="";
+
+        long[] help = new long[encrypted.length];
+        for(int i=0;i<encrypted.length;i++){
+            help[i] = encrypted[i];
         }
+        for (int i = 0; i < encrypted.length; i++) {
+            help[i] =(long)(Math.pow(help[i],d)%N);
+            System.out.println(help[i]);
+        }
+
+        return new String();
     }
+
 
 
     /**
@@ -170,9 +172,9 @@ public class TicTacToeClient extends Client implements DrawableObject {
     @Override
     public void processMessage(String pMessage) {
         if(pMessage.contains("PUBLIC")) {
-            buildPublicKey(pMessage);
+          //  buildPublicKey(pMessage);
         }else if(pMessage.contains("PRIVATE")) {
-            buildPrivateKey(pMessage);
+          //  buildPrivateKey(pMessage);
         } else if(pMessage.contains("TEXT")){
             String[] message = pMessage.split("TEXT");
             for(int i=1;i<message.length;i++){
@@ -232,6 +234,19 @@ public class TicTacToeClient extends Client implements DrawableObject {
             win = false;
             restart = false;
 
+        }else if(pMessage.contains("CHAT")){
+            try {
+               // System.out.println(new String(decryptMessage(pMessage.getBytes())));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else if(pMessage.contains("KEYS")){
+            pMessage = pMessage.split("KEYS")[1];
+            String[] temp = pMessage.split("#");
+            N = Integer.parseInt(temp[0]);
+            e = Integer.parseInt(temp[1]);
+            d = Integer.parseInt(temp[2]);
+            System.out.println("N : "+N+",e : "+e+",d : "+d);
         }
     }
 
