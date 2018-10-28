@@ -94,18 +94,13 @@ public class TicTacToeClient extends Client implements DrawableObject {
     public String decryptMessage(String encrypted){
         String decryptedMessage ="";
         encrypted = encrypted.split("CHAT")[1];
-        System.out.println(encrypted+ " aus decryptMessage");
         int[] encryptedArray = new int[encrypted.split("#").length];
-        for (int i = 0; i <encryptedArray.length; i++) {
-            encryptedArray[i] = Integer.parseInt(encrypted.split("#")[i]);
-            System.out.println("verschlüssselt: "+encryptedArray[i]);
-        }
         for (int i = 0; i < encryptedArray.length; i++) {
+            encryptedArray[i] = Integer.parseInt(encrypted.split("#")[i]);
             BigInteger decryptedInteger = new BigInteger(Integer.toString(encryptedArray[i]));
             BigInteger modulu = new BigInteger(Integer.toString(privateKey.getKey2()));
-            BigInteger exponent = new BigInteger(Integer.toString(publicKey.getKey1()*privateKey.getKey1()));
+            BigInteger exponent = new BigInteger(Integer.toString(privateKey.getKey1()));
             encryptedArray[i] = Integer.parseInt((decryptedInteger.modPow(modulu,exponent)).toString());
-            System.out.println("ascii: "+encryptedArray[i]);
             decryptedMessage += (char) encryptedArray[i];
         }
         return decryptedMessage;
