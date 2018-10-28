@@ -100,7 +100,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
             System.out.println("alt: "+encryptedArray[i]);
         }
         for (int i = 0; i < encryptedArray.length; i++) {
-            double task = Math.pow(encryptedArray[i],(publicKey.getKey1()/**privateKey.getKey1())*/));
+            double task = Math.pow(encryptedArray[i],(publicKey.getKey1()*privateKey.getKey1()));
             if(Double.isNaN(task)){
                 System.out.println("miese");
             }else{
