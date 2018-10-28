@@ -236,13 +236,15 @@ public class TicTacToeClient extends Client implements DrawableObject {
             String[] values = message[1].split("#");
             publicKey.setKeys(Integer.parseInt(values[0]),Integer.parseInt(values[1]));
             //Schritt 6: Den privaten Exponenten ermitteln (nötig zum decodieren ):
-            int d=0;
-            for(;true;d++){
+            BigInteger phiBI= new BigInteger(values[2]);
+            BigInteger d = new BigInteger(Integer.toString(publicKey.getKey1())).modInverse(phiBI);
+            /**for(;true;d++){
                 if(((publicKey.getKey1()*d)%Integer.parseInt(values[2])==1)){
                     break;
                 }
-            }
-            privateKey.setKeys(d,Integer.parseInt(values[1]));
+            }*/
+            //d=publicKey.getKey1()%Integer.parseInt(values[2]);
+            privateKey.setKeys(d.intValue(),publicKey.getKey2());
             System.out.println("N : "+publicKey.getKey2()+",e : "+publicKey.getKey1()+",d : "+d);
 
             System.out.println("Privater Key:");
