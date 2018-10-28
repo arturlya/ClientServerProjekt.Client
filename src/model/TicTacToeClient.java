@@ -1,27 +1,13 @@
 package model;
 
 import model.abitur.netz.Client;
-import sun.security.rsa.RSAKeyPairGenerator;
 import view.framework.DrawTool;
 import view.framework.DrawableObject;
 import view.framework.DrawingPanel;
 
-import javax.crypto.Cipher;
 import javax.swing.*;
 import java.awt.event.*;
-import java.io.*;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.*;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.RSAPublicKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -49,7 +35,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
     private DrawingPanel dp;
     private JTextField textField;
 
-    private int N,e,d;
+    private Key publicKey, privateKey;
 
 
 
@@ -67,6 +53,8 @@ public class TicTacToeClient extends Client implements DrawableObject {
             System.out.println("running Client");
         this.map = map;
         this.dp = dp;
+        publicKey = new Key();
+        privateKey = new Key();
         scanner = new Scanner(System.in);
         textField = new JTextField(5);
         dp.add(textField);
@@ -75,7 +63,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
             public void actionPerformed(ActionEvent e) {
                 try {
                     System.out.println("> "+e.getActionCommand());
-                    //send("CHAT"+new String(encryptMessage(e.getActionCommand())));
+                    send("CHAT"+ encryptMessage(e.getActionCommand()));
 
                 } catch (Exception e1) {
                     e1.printStackTrace();
@@ -85,33 +73,45 @@ public class TicTacToeClient extends Client implements DrawableObject {
 
     }
 
-    public int[] encryptMessage(String message, int e, int N){
+    public String encryptMessage(String message){
+        String encrypted = "";
         byte[] asciiMessage = message.getBytes(StandardCharsets.US_ASCII);
-        int[] temp = new int[asciiMessage.length];
+        int[] messageArray = new int[asciiMessage.length];
         for(int i=0;i<asciiMessage.length;i++){
             System.out.println("Ascii : "+asciiMessage[i]);
-            temp[i] = asciiMessage[i];
+            messageArray[i] = asciiMessage[i];
         }
-        for(int i=0;i<temp.length;i++){
-            temp[i] = (int)(Math.pow(temp[i],e)%N);
-            System.out.println("Neu : "+temp[i]);
+        for(int i=0;i<messageArray.length;i++){
+            messageArray[i] = (int)(Math.pow(messageArray[i],publicKey.getKey1())%publicKey.getKey2());
+            //System.out.println("Neu : "+messageArray[i]);
+            encrypted = encrypted + (Integer.toString(messageArray[i]) + "#");
         }
-        return temp;
+        System.out.println(encrypted+ " aus encryptMessage");
+        return encrypted;
     }
 
-    public String decryptMessage(int[] encrypted,int e, int d, int N){
-        String temp ="";
-
-        long[] help = new long[encrypted.length];
-        for(int i=0;i<encrypted.length;i++){
-            help[i] = encrypted[i];
+    public String decryptMessage(String encrypted){
+        String decryptedMessage ="";
+        encrypted = encrypted.split("CHAT")[1];
+        System.out.println(encrypted+ " aus decryptMessage");
+        double[] encryptedArray = new double[encrypted.split("#").length];
+        for (int i = 0; i <encryptedArray.length; i++) {
+            encryptedArray[i] = Integer.parseInt(encrypted.split("#")[i]);
+            System.out.println("alt: "+encryptedArray[i]);
         }
-        for (int i = 0; i < encrypted.length; i++) {
-            help[i] =(long)(Math.pow(help[i],d)%N);
-            System.out.println(help[i]);
-        }
+        for (int i = 0; i < encryptedArray.length; i++) {
+            double task = Math.pow(encryptedArray[i],(publicKey.getKey1()/**privateKey.getKey1())*/));
+            if(Double.isNaN(task)){
+                System.out.println("miese");
+            }else{
+                System.out.println(task);
+            }
 
-        return new String();
+            //encryptedArray[i] = (Math.pow(encryptedArray[i],(publicKey.getKey1()*privateKey.getKey1()))%privateKey.getKey2()); //Ein Wert erreicht Double.MAX_VALUE
+            System.out.println("ascii: "+encryptedArray[i]);
+            decryptedMessage = decryptedMessage + Double.toString(encryptedArray[i]);
+        }
+        return decryptedMessage;
     }
 
 
@@ -171,11 +171,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
      */
     @Override
     public void processMessage(String pMessage) {
-        if(pMessage.contains("PUBLIC")) {
-          //  buildPublicKey(pMessage);
-        }else if(pMessage.contains("PRIVATE")) {
-          //  buildPrivateKey(pMessage);
-        } else if(pMessage.contains("TEXT")){
+        if(pMessage.contains("TEXT")){
             String[] message = pMessage.split("TEXT");
             for(int i=1;i<message.length;i++){
                 System.out.println(message[i]);
@@ -235,18 +231,25 @@ public class TicTacToeClient extends Client implements DrawableObject {
             restart = false;
 
         }else if(pMessage.contains("CHAT")){
-            try {
-               // System.out.println(new String(decryptMessage(pMessage.getBytes())));
-            } catch (Exception e) {
-                e.printStackTrace();
+               System.out.println(decryptMessage(pMessage));
+        }else if(pMessage.contains("KEY")){
+            String[] message = pMessage.split("KEY");
+            String[] values = message[1].split("#");
+            publicKey.setKeys(Integer.parseInt(values[0]),Integer.parseInt(values[1]));
+            //Schritt 6: Den privaten Exponenten ermitteln (nötig zum decodieren ):
+            int d=0;
+            for(;true;d++){
+                if(((publicKey.getKey1()*d)%Integer.parseInt(values[2])==1)){
+                    break;
+                }
             }
-        }else if(pMessage.contains("KEYS")){
-            pMessage = pMessage.split("KEYS")[1];
-            String[] temp = pMessage.split("#");
-            N = Integer.parseInt(temp[0]);
-            e = Integer.parseInt(temp[1]);
-            d = Integer.parseInt(temp[2]);
-            System.out.println("N : "+N+",e : "+e+",d : "+d);
+            privateKey.setKeys(d,Integer.parseInt(values[1]));
+            System.out.println("N : "+publicKey.getKey2()+",e : "+publicKey.getKey1()+",d : "+d);
+
+            System.out.println("Privater Key:");
+            System.out.println("d="+d);
+            System.out.println("N="+publicKey.getKey2()+"\n");
+
         }
     }
 
