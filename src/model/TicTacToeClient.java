@@ -98,16 +98,17 @@ public class TicTacToeClient extends Client implements DrawableObject {
         int[] encryptedArray = new int[encrypted.split("#").length];
         for (int i = 0; i <encryptedArray.length; i++) {
             encryptedArray[i] = Integer.parseInt(encrypted.split("#")[i]);
-            System.out.println("alt: "+encryptedArray[i]);
+            System.out.println("verschlüssselt: "+encryptedArray[i]);
         }
         for (int i = 0; i < encryptedArray.length; i++) {
-            BigInteger biggi = new BigInteger(Integer.toString(encryptedArray[i]));
-            biggi = biggi.pow((publicKey.getKey1()*privateKey.getKey1()));
-            biggi = biggi.mod(new BigInteger(Integer.toString(privateKey.getKey2())));
-            System.out.println(biggi);
-            //encryptedArray[i] = (Math.pow(encryptedArray[i],(publicKey.getKey1()*privateKey.getKey1()))%privateKey.getKey2()); //Ein Wert erreicht Double.MAX_VALUE
+            BigInteger decryptedInteger = new BigInteger(Integer.toString(encryptedArray[i]));
+            BigInteger modulu = new BigInteger(Integer.toString(privateKey.getKey2()));
+            BigInteger exponent = new BigInteger(Integer.toString(publicKey.getKey1()*privateKey.getKey1()));
+            encryptedArray[i] = Integer.parseInt((decryptedInteger.modPow(modulu,exponent)).toString());
             System.out.println("ascii: "+encryptedArray[i]);
-            decryptedMessage = decryptedMessage + encryptedArray[i];
+            //TODO decryptedMessage als korrekter String ausgegeben werden
+            //TODO Korrekter ASCII-Code muss zurück in Zeichen gewandelt werden
+            //decryptedMessage = decryptedMessage + encryptedArray[i];
         }
         return decryptedMessage;
     }
