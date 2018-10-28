@@ -106,9 +106,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
             BigInteger exponent = new BigInteger(Integer.toString(publicKey.getKey1()*privateKey.getKey1()));
             encryptedArray[i] = Integer.parseInt((decryptedInteger.modPow(modulu,exponent)).toString());
             System.out.println("ascii: "+encryptedArray[i]);
-            //TODO decryptedMessage als korrekter String ausgegeben werden
-            //TODO Korrekter ASCII-Code muss zurück in Zeichen gewandelt werden
-            //decryptedMessage = decryptedMessage + encryptedArray[i];
+            decryptedMessage += (char) encryptedArray[i];
         }
         return decryptedMessage;
     }
