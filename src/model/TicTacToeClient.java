@@ -7,6 +7,7 @@ import view.framework.DrawingPanel;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
@@ -94,22 +95,19 @@ public class TicTacToeClient extends Client implements DrawableObject {
         String decryptedMessage ="";
         encrypted = encrypted.split("CHAT")[1];
         System.out.println(encrypted+ " aus decryptMessage");
-        double[] encryptedArray = new double[encrypted.split("#").length];
+        int[] encryptedArray = new int[encrypted.split("#").length];
         for (int i = 0; i <encryptedArray.length; i++) {
             encryptedArray[i] = Integer.parseInt(encrypted.split("#")[i]);
             System.out.println("alt: "+encryptedArray[i]);
         }
         for (int i = 0; i < encryptedArray.length; i++) {
-            double task = Math.pow(encryptedArray[i],(publicKey.getKey1()*privateKey.getKey1()));
-            if(Double.isNaN(task)){
-                System.out.println("miese");
-            }else{
-                System.out.println(task);
-            }
-
+            BigInteger biggi = new BigInteger(Integer.toString(encryptedArray[i]));
+            biggi = biggi.pow((publicKey.getKey1()*privateKey.getKey1()));
+            biggi = biggi.mod(new BigInteger(Integer.toString(privateKey.getKey2())));
+            System.out.println(biggi);
             //encryptedArray[i] = (Math.pow(encryptedArray[i],(publicKey.getKey1()*privateKey.getKey1()))%privateKey.getKey2()); //Ein Wert erreicht Double.MAX_VALUE
             System.out.println("ascii: "+encryptedArray[i]);
-            decryptedMessage = decryptedMessage + Double.toString(encryptedArray[i]);
+            decryptedMessage = decryptedMessage + encryptedArray[i];
         }
         return decryptedMessage;
     }
