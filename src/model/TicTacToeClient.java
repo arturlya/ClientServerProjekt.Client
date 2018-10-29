@@ -16,6 +16,8 @@ import java.util.Scanner;
  */
 public class TicTacToeClient extends Client implements DrawableObject {
 
+    private JScrollPane scrollPane;
+    private JTextArea textArea;
     /** Spieler-Nummer (Kreis(1) oder Kreuz(2)) */
     private int playerNumber;
 
@@ -58,14 +60,19 @@ public class TicTacToeClient extends Client implements DrawableObject {
         privateKey = new Key();
         scanner = new Scanner(System.in);
         textField = new JTextField(5);
+        textArea = new JTextArea(4,40);
+        scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        scrollPane.createVerticalScrollBar();
         dp.add(textField);
+        dp.add(scrollPane);
         textField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    System.out.println("> "+e.getActionCommand());
                     send("CHAT"+ encryptMessage(e.getActionCommand()));
-
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -77,32 +84,29 @@ public class TicTacToeClient extends Client implements DrawableObject {
     public String encryptMessage(String message){
         String encrypted = "";
         byte[] asciiMessage = message.getBytes(StandardCharsets.US_ASCII);
-        int[] messageArray = new int[asciiMessage.length];
+        BigInteger[] messageArray = new BigInteger[asciiMessage.length];
         for(int i=0;i<asciiMessage.length;i++){
-            System.out.println("Ascii : "+asciiMessage[i]);
-            messageArray[i] = asciiMessage[i];
+            messageArray[i] = new BigInteger(Integer.toString(asciiMessage[i]));
         }
         for(int i=0;i<messageArray.length;i++){
-            messageArray[i] = (int)(Math.pow(messageArray[i],publicKey.getKey1())%publicKey.getKey2());
-            //System.out.println("Neu : "+messageArray[i]);
-            encrypted = encrypted + (Integer.toString(messageArray[i]) + "#");
+            messageArray[i] = messageArray[i].modPow(new BigInteger(""+publicKey.getKey1()),new BigInteger(""+privateKey.getKey2()));
+            encrypted = encrypted + messageArray[i] + "#";
         }
-        System.out.println(encrypted+ " aus encryptMessage");
         return encrypted;
     }
 
     public String decryptMessage(String encrypted){
-        String decryptedMessage ="";
+        String decryptedMessage =">";
         encrypted = encrypted.split("CHAT")[1];
-        int[] encryptedArray = new int[encrypted.split("#").length];
+        BigInteger[] encryptedArray = new BigInteger[encrypted.split("#").length];
         for (int i = 0; i < encryptedArray.length; i++) {
-            encryptedArray[i] = Integer.parseInt(encrypted.split("#")[i]);
-            BigInteger decryptedInteger = new BigInteger(Integer.toString(encryptedArray[i]));
+            encryptedArray[i] = new BigInteger((encrypted.split("#")[i]));
             BigInteger modulu = new BigInteger(Integer.toString(privateKey.getKey2()));
             BigInteger exponent = new BigInteger(Integer.toString(privateKey.getKey1()));
-            encryptedArray[i] = Integer.parseInt((decryptedInteger.modPow(modulu,exponent)).toString());
-            decryptedMessage += (char) encryptedArray[i];
+            encryptedArray[i] = new BigInteger((encryptedArray[i].modPow(exponent,modulu)).toString());
+            decryptedMessage += (char)encryptedArray[i].intValueExact();
         }
+        decryptedMessage+="\n";
         return decryptedMessage;
     }
 
@@ -223,7 +227,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
             restart = false;
 
         }else if(pMessage.contains("CHAT")){
-               System.out.println(decryptMessage(pMessage));
+            textArea.append(decryptMessage(pMessage));
         }else if(pMessage.contains("KEY")){
             String[] message = pMessage.split("KEY");
             String[] values = message[1].split("#");
@@ -231,13 +235,8 @@ public class TicTacToeClient extends Client implements DrawableObject {
             //Schritt 6: Den privaten Exponenten ermitteln (nötig zum decodieren ):
             BigInteger phiBI= new BigInteger(values[2]);
             BigInteger d = new BigInteger(Integer.toString(publicKey.getKey1())).modInverse(phiBI);
-            /**for(;true;d++){
-                if(((publicKey.getKey1()*d)%Integer.parseInt(values[2])==1)){
-                    break;
-                }
-            }*/
             //d=publicKey.getKey1()%Integer.parseInt(values[2]);
-            privateKey.setKeys(d.intValue(),publicKey.getKey2());
+            privateKey.setKeys(d.intValueExact(),publicKey.getKey2());
             System.out.println("N : "+publicKey.getKey2()+",e : "+publicKey.getKey1()+",d : "+d);
 
             System.out.println("Privater Key:");
