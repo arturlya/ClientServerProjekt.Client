@@ -24,11 +24,12 @@ public class Field extends GraphicalObject {
      */
     @Override
     public void draw(DrawTool drawTool) {
+        drawTool.setCurrentColor((int)(Math.random()*256),(int)(Math.random()*256),(int)(Math.random()*256),255);
         if (value == 1) {
-            drawTool.drawCircle(x*200+120,y*200+100,160);
+            drawTool.drawCircle(x*200+120,y*200+300,160);
         }else if (value == 2) {
-            drawTool.drawLine(x*200+120,y*200+100,x*200+280,y*200+260);
-            drawTool.drawLine(x*200+280,y*200+100,x*200+120,y*200+260);
+            drawTool.drawLine(x*200+120,y*200+300,x*200+280,y*200+460);
+            drawTool.drawLine(x*200+280,y*200+300,x*200+120,y*200+460);
         }
     }
 

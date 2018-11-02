@@ -6,6 +6,7 @@ import view.framework.DrawableObject;
 import view.framework.DrawingPanel;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +61,11 @@ public class TicTacToeClient extends Client implements DrawableObject {
         privateKey = new Key();
         scanner = new Scanner(System.in);
         textField = new JTextField(5);
-        textArea = new JTextArea(4,40);
+        textArea = new JTextArea(6,40);
+        textArea.setBackground(new Color(138,43,226));
+        textArea.setForeground(new Color(255,255,255));
+        Font font = new Font("Comic Sans MS",1,24);
+        textArea.setFont(font);
         scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         textArea.setEditable(false);
         textArea.setLineWrap(true);
@@ -120,18 +125,21 @@ public class TicTacToeClient extends Client implements DrawableObject {
      */
     @Override
     public void draw(DrawTool drawTool) {
+        drawTool.setCurrentColor(255,24,100,150);
+        drawTool.drawFilledRectangle(0,0,1000000,1000000);
+        drawTool.setCurrentColor(0,0,0,255);
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                drawTool.drawRectangle(i*200+100,j*200+80, 200,200);
+                drawTool.drawRectangle(i*200+100,j*200+280, 200,200);
             }
         }
         if (win) {
             if (restart) drawTool.setCurrentColor(0,255,0,255);
             else drawTool.setCurrentColor(0,0,0,255);
-            drawTool.drawRectangle(350,30,100,30);
-            drawTool.drawRectangle(351,31,98,28);
-            drawTool.drawRectangle(352,32,96,26);
-            drawTool.drawText(370,50,"Rematch?");
+            drawTool.drawRectangle(350,900,100,30);
+            drawTool.drawRectangle(351,901,98,28);
+            drawTool.drawRectangle(352,902,96,26);
+            drawTool.drawText(370,920,"Rematch?");
         }
     }
 
@@ -259,7 +267,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
             if (turn) {
                 for (int i = 0; i < 3; i++) {
                     for (int j = 0; j < 3; j++) {
-                        if (e.getX() >= i * 200 + 100 && e.getX() < i * 200 + 300 && e.getY() >= j * 200 + 80 && e.getY() < j * 200 + 280) {
+                        if (e.getX() >= i * 200 + 100 && e.getX() < i * 200 + 300 && e.getY() >= j * 200 + 280 && e.getY() < j * 200 + 480) {
                             String message = "ACTIONNEXT" + i + "FIELD" + j + "FIELD" + playerNumber + "";
                             System.out.println(message);
                             send(message);
@@ -267,7 +275,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
                     }
                 }
             }else if (win) {
-                if (e.getX() >= 350 && e.getX() <= 450 && e.getY() >= 30 && e.getY() <= 60) {
+                if (e.getX() >= 350 && e.getX() <= 450 && e.getY() >= 900 && e.getY() <= 930) {
                     if (!restart) {
                         send("RESTART");
                         restart = true;
