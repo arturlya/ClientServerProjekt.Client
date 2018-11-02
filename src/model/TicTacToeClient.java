@@ -228,6 +228,7 @@ public class TicTacToeClient extends Client implements DrawableObject {
 
         }else if(pMessage.contains("CHAT")){
             textArea.append(decryptMessage(pMessage));
+            textArea.setCaretPosition(textArea.getDocument().getLength());
         }else if(pMessage.contains("KEY")){
             String[] message = pMessage.split("KEY");
             String[] values = message[1].split("#");
